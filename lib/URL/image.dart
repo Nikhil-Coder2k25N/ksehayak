@@ -38,7 +38,8 @@ class AppImageModel {
     Images:
     "https://res.cloudinary.com/duagapuer/image/upload/v1769634178/saffron-farm-climate-controller_gllupi.jpg",
   );
-  /// 🛒 STORE IMAGE 6
+
+  /// 🛒 Profile IMAGE
   static const AppImageModel Profile1 = AppImageModel(
     Images:
     "https://res.cloudinary.com/duagapuer/image/upload/v1769604514/logo_ms34as.png",

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:ksehayak/Screens/drower.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:ksehayak/URL/image.dart';
+import 'package:firebase_database/firebase_database.dart';
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
 
@@ -11,6 +12,149 @@ class DashboardPage extends StatefulWidget {
 }
 
 class _DashboardPageState extends State<DashboardPage> {
+
+  //  ALERT CONDITION
+  Color getStatusColor(String status) {
+    return status == "Good" ? Colors.green : Colors.red;
+  }
+
+  String getTempStatus() {
+    if (temperature >= 16 && temperature <= 25) {
+      return "Good";
+    } else {
+      return "Bad";
+    }
+  }
+
+  String getHumidityStatus() {
+    if (humidity >= 55 && humidity <= 75) {
+      return "Good";
+    } else {
+      return "Bad";
+    }
+  }
+
+
+  double temperature = 0;
+  double humidity = 0;
+
+  final DatabaseReference dbRef =
+  FirebaseDatabase.instance.ref("ESP32");
+
+  bool highTempAlertShown = false;
+
+  //Alert For Temperature
+  void showHighTempAlert(double temp) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            gradient: const LinearGradient(
+              colors: [Color(0xFFFFE5E5), Color(0xFFFFF3E0)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // 🚨 Icon
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: Colors.red.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.thermostat,
+                  color: Colors.red,
+                  size: 40,
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              const Text(
+                "High Temperature Alert!",
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.red,
+                ),
+                textAlign: TextAlign.center,
+              ),
+
+              const SizedBox(height: 10),
+
+              Text(
+                "Current temperature is ${temp.toStringAsFixed(1)}°C.\nPlease check your farm conditions.",
+                style: const TextStyle(fontSize: 14, color: Colors.black87),
+                textAlign: TextAlign.center,
+              ),
+
+              const SizedBox(height: 20),
+
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.check_circle_outline,color: Colors.white,),
+                  label: const Text("Got it",style: TextStyle(color: Colors.white),),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    dbRef.onValue.listen((event) {
+      final data = event.snapshot.value;
+
+      if (data != null && data is Map) {
+        double newTemp =
+            double.tryParse(data['Temperature'].toString()) ?? 0;
+        double newHum =
+            double.tryParse(data['Humidity'].toString()) ?? 0;
+
+        setState(() {
+          temperature = newTemp;
+          humidity = newHum;
+        });
+
+        // 🚨 ALERT CONDITION
+        if (newTemp > 25 && !highTempAlertShown) {
+          highTempAlertShown = true;
+          showHighTempAlert(newTemp);
+        }
+
+        // Reset alert if temp goes back to normal
+        if (newTemp <= 25) {
+          highTempAlertShown = false;
+        }
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -95,18 +239,18 @@ class _DashboardPageState extends State<DashboardPage> {
               _sensorCard(
                 icon: Icons.thermostat,
                 title: "Temperature",
-                value: "16.9°C",
+                value: "${temperature.toStringAsFixed(1)}°C",
                 optimal: "Optimal: 16–22°C",
-                progress: 0.6,
-                color: Colors.green,
+                progress: (temperature / 50).clamp(0, 1),
+                color: temperature > 25 ? Colors.red : Colors.green, //if 25+ deg C
               ),
 
               _sensorCard(
                 icon: Icons.water_drop,
                 title: "Humidity",
-                value: "72%",
+                value: "${humidity.toStringAsFixed(0)}%",
                 optimal: "Optimal: 55–75%",
-                progress: 0.7,
+                progress: (humidity / 100).clamp(0, 1),
                 color: Colors.green,
               ),
 
@@ -298,7 +442,10 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
-  static Widget _cropHealthCard() {
+  Widget _cropHealthCard() {
+    String tempStatus = getTempStatus();
+    String humStatus = getHumidityStatus();
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: _cardDecoration(),
@@ -309,6 +456,7 @@ class _DashboardPageState extends State<DashboardPage> {
           const Text("Based on environmental conditions",
               style: TextStyle(color: Colors.grey)),
           const SizedBox(height: 16),
+
           const Text(
             "92",
             style: TextStyle(
@@ -319,24 +467,32 @@ class _DashboardPageState extends State<DashboardPage> {
           ),
           const Text("Excellent Conditions",
               style: TextStyle(color: Colors.green)),
+
           const SizedBox(height: 12),
-          _healthRow("Temperature", "Good"),
-          _healthRow("Humidity", "Good"),
-          _healthRow("Light", "Optimal"),
-          _healthRow("Soil Moisture", "Good"),
+
+          _healthRow("Temperature", tempStatus, getStatusColor(tempStatus)),
+          _healthRow("Humidity", humStatus, getStatusColor(humStatus)),
+          _healthRow("Light", "Optimal", Colors.green),
+          _healthRow("Soil Moisture", "Good", Colors.green),
         ],
       ),
     );
   }
 
-  static Widget _healthRow(String label, String value) {
+  Widget _healthRow(String label, String value, Color color) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(label),
-          Text(value, style: const TextStyle(color: Colors.green)),
+          Text(
+            value,
+            style: TextStyle(
+              color: color,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         ],
       ),
     );

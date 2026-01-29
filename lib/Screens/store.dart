@@ -82,7 +82,7 @@ class _StorePageState extends State<StorePage> {
       rating: "4.8",
       category: "Irrigation",
       outOfStock: true,
-      imageUrl: AppImageModel.store1.Images,
+      imageUrl: AppImageModel.store5.Images,
     ),
   ];
 
