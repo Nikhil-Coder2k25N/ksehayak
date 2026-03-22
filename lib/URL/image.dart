@@ -49,4 +49,21 @@ class AppImageModel {
     Images:
     "https://res.cloudinary.com/duagapuer/image/upload/v1769604869/safron_aqbrgq.jpg",
   );
+  /// about Section Images
+  static const AppImageModel Ishan = AppImageModel(
+    Images:
+    "https://res.cloudinary.com/duagapuer/image/upload/v1769750136/1c9eca9d-df85-4004-84f4-585e68509311_l9uejz.png",
+  );
+  static const AppImageModel Nikhil = AppImageModel(
+    Images:
+    "https://res.cloudinary.com/duagapuer/image/upload/v1769749973/Nikhil1_pkdxs2.jpg",
+  );
+  static const AppImageModel Divyansh = AppImageModel(
+    Images:
+    "https://res.cloudinary.com/duagapuer/image/upload/v1769750334/8b9b4bc8-65fc-47c9-8b06-e34f2bcc0e3f_flhhe4.png",
+  );
+  static const AppImageModel Jatin = AppImageModel(
+    Images:
+    "https://res.cloudinary.com/duagapuer/image/upload/v1769750616/ab9e94f2-8136-4d3d-8f63-f89221750efd_rnzudf.png",
+  );
 }

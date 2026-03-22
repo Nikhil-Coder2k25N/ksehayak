@@ -1,6 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:ksehayak/Screens/login.dart';
+import 'package:ksehayak/Screens/splash.dart';
 import 'firebase_options.dart';
 
 void main()async{
@@ -10,7 +11,7 @@ void main()async{
   );
   //new
   runApp(MaterialApp(
-    home: LoginPage(),
+    home: SplashScreen(),
     debugShowCheckedModeBanner: false,
   ));
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:ksehayak/Screens/about.dart';
 import 'package:ksehayak/Screens/drower.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:ksehayak/URL/image.dart';
@@ -19,7 +20,7 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   String getTempStatus() {
-    if (temperature >= 16 && temperature <= 25) {
+    if (temperature >= 16 && temperature <= 33) {
       return "Good";
     } else {
       return "Bad";
@@ -141,7 +142,7 @@ class _DashboardPageState extends State<DashboardPage> {
           humidity = newHum;
         });
 
-        // 🚨 ALERT CONDITION
+        // ALERT CONDITION
         if (newTemp > 25 && !highTempAlertShown) {
           highTempAlertShown = true;
           showHighTempAlert(newTemp);
@@ -190,6 +191,14 @@ class _DashboardPageState extends State<DashboardPage> {
             ),
           ),
         ),
+        actions: [
+          IconButton(onPressed: (){
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const AboutPage()),
+            );
+            }, icon: Icon(Icons.info,color: Colors.green,))
+        ],
       ),
       backgroundColor: Colors.white,
       drawer: const ProfileDrawerUI(),
